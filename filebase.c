@@ -34,12 +34,34 @@ ZEND_DECLARE_MODULE_GLOBALS(filebase)
 /* True global resources - no need for thread safety here */
 static int le_filebase;
 
+
+/* {{{ PHP_FUNCTION
+*/
+PHP_FUNCTION(filebase_get)
+{
+	char *name;
+	int name_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE)
+	{
+		return;
+	}
+
+	char out[10 + name_len];
+	php_sprintf(out, "Hello %s!\n", name);
+	RETURN_STRING(out, 1);
+
+}
+ZEND_BEGIN_ARG_INFO(arginfo_filebase_get, 0)
+ZEND_END_ARG_INFO()
+/* }}} */
+
+
 /* {{{ filebase_functions[]
  *
  * Every user visible function must have an entry in filebase_functions[].
  */
 const zend_function_entry filebase_functions[] = {
-	PHP_FE(confirm_filebase_compiled,	NULL)		/* For testing, remove later. */
+	PHP_FE(filebase_get, arginfo_filebase_get)
 	PHP_FE_END	/* Must be the last line in filebase_functions[] */
 };
 /* }}} */
@@ -125,35 +147,6 @@ PHP_MINFO_FUNCTION(filebase)
 	*/
 }
 /* }}} */
-
-
-/* Remove the following function when you have successfully modified config.m4
-   so that your module can be compiled into PHP, it exists only for testing
-   purposes. */
-
-/* Every user-visible function in PHP should document itself in the source */
-/* {{{ proto string confirm_filebase_compiled(string arg)
-   Return a string to confirm that the module is compiled in */
-PHP_FUNCTION(confirm_filebase_compiled)
-{
-	char *arg = NULL;
-	int arg_len, len;
-	char *strg;
-
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &arg, &arg_len) == FAILURE) {
-		return;
-	}
-
-	len = spprintf(&strg, 0, "Congratulations! You have successfully modified ext/%.78s/config.m4. Module %.78s is now compiled into PHP.", "filebase", arg);
-	RETURN_STRINGL(strg, len, 0);
-}
-/* }}} */
-/* The previous line is meant for vim and emacs, so it can correctly fold and 
-   unfold functions in source code. See the corresponding marks just before 
-   function definition, where the functions purpose is also documented. Please 
-   follow this convention for the convenience of others editing your code.
-*/
-
 
 /*
  * Local variables:

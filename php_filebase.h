@@ -44,8 +44,6 @@ PHP_RINIT_FUNCTION(filebase);
 PHP_RSHUTDOWN_FUNCTION(filebase);
 PHP_MINFO_FUNCTION(filebase);
 
-PHP_FUNCTION(confirm_filebase_compiled);	/* For testing, remove later. */
-
 /* 
   	Declare any global variables you may need between the BEGIN
 	and END macros here:     

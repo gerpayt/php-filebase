@@ -46,8 +46,11 @@ PHP_FUNCTION(filebase_get)
 		return;
 	}
 
-	char out[10 + name_len];
-	php_sprintf(out, "Hello %s!\n", name);
+	const char *root = INI_STR("filebase.root");
+	const int root_len = strlen(root);
+
+	char out[10 + name_len + root_len];
+	php_sprintf(out, "Hello %s, %s!\n", root, name);
 	RETURN_STRING(out, 1);
 
 }
@@ -92,32 +95,16 @@ ZEND_GET_MODULE(filebase)
 
 /* {{{ PHP_INI
  */
-/* Remove comments and fill if you need to have entries in php.ini
 PHP_INI_BEGIN()
-    STD_PHP_INI_ENTRY("filebase.global_value",      "42", PHP_INI_ALL, OnUpdateLong, global_value, zend_filebase_globals, filebase_globals)
-    STD_PHP_INI_ENTRY("filebase.global_string", "foobar", PHP_INI_ALL, OnUpdateString, global_string, zend_filebase_globals, filebase_globals)
+    PHP_INI_ENTRY("filebase.root", "filebase", PHP_INI_ALL, NULL)
 PHP_INI_END()
-*/
-/* }}} */
-
-/* {{{ php_filebase_init_globals
- */
-/* Uncomment this function if you have INI entries
-static void php_filebase_init_globals(zend_filebase_globals *filebase_globals)
-{
-	filebase_globals->global_value = 0;
-	filebase_globals->global_string = NULL;
-}
-*/
 /* }}} */
 
 /* {{{ PHP_MINIT_FUNCTION
  */
 PHP_MINIT_FUNCTION(filebase)
 {
-	/* If you have INI entries, uncomment these lines 
 	REGISTER_INI_ENTRIES();
-	*/
 	return SUCCESS;
 }
 /* }}} */
@@ -126,9 +113,7 @@ PHP_MINIT_FUNCTION(filebase)
  */
 PHP_MSHUTDOWN_FUNCTION(filebase)
 {
-	/* uncomment this line if you have INI entries
 	UNREGISTER_INI_ENTRIES();
-	*/
 	return SUCCESS;
 }
 /* }}} */
@@ -142,9 +127,7 @@ PHP_MINFO_FUNCTION(filebase)
 	php_info_print_table_row(2, "author", "Chen Feng"); /* Replace with your name */
 	php_info_print_table_end();
 
-	/* Remove comments if you have entries in php.ini
 	DISPLAY_INI_ENTRIES();
-	*/
 }
 /* }}} */
 

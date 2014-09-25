@@ -54,8 +54,8 @@ zend_module_entry filebase_module_entry = {
 	filebase_functions,
 	PHP_MINIT(filebase),
 	PHP_MSHUTDOWN(filebase),
-	PHP_RINIT(filebase),		/* Replace with NULL if there's nothing to do at request start */
-	PHP_RSHUTDOWN(filebase),	/* Replace with NULL if there's nothing to do at request end */
+	NULL,
+	NULL,
 	PHP_MINFO(filebase),
 #if ZEND_MODULE_API_NO >= 20010901
 	PHP_FILEBASE_VERSION,
@@ -111,30 +111,13 @@ PHP_MSHUTDOWN_FUNCTION(filebase)
 }
 /* }}} */
 
-/* Remove if there's nothing to do at request start */
-/* {{{ PHP_RINIT_FUNCTION
- */
-PHP_RINIT_FUNCTION(filebase)
-{
-	return SUCCESS;
-}
-/* }}} */
-
-/* Remove if there's nothing to do at request end */
-/* {{{ PHP_RSHUTDOWN_FUNCTION
- */
-PHP_RSHUTDOWN_FUNCTION(filebase)
-{
-	return SUCCESS;
-}
-/* }}} */
-
 /* {{{ PHP_MINFO_FUNCTION
  */
 PHP_MINFO_FUNCTION(filebase)
 {
 	php_info_print_table_start();
 	php_info_print_table_header(2, "filebase support", "enabled");
+	php_info_print_table_row(2, "author", "Chen Feng"); /* Replace with your name */
 	php_info_print_table_end();
 
 	/* Remove comments if you have entries in php.ini

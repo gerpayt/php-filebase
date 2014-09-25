@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("filebase", "for filebase support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("filebase", "enable filebase support", "no");
+
+if (PHP_FILEBASE != "no") {
+	EXTENSION("filebase", "filebase.c");
+}
+

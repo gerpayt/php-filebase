@@ -39,9 +39,9 @@ static int le_filebase;
 */
 PHP_FUNCTION(filebase_get)
 {
-	char *name;
-	int name_len;
-	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &name, &name_len) == FAILURE)
+	char *bucket, *path;
+	int bucket_len, path_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &bucket, &bucket_len, &path, &path_len) == FAILURE)
 	{
 		return;
 	}
@@ -49,10 +49,32 @@ PHP_FUNCTION(filebase_get)
 	const char *root = INI_STR("filebase.root");
 	const int root_len = strlen(root);
 
-	char out[10 + name_len + root_len];
-	php_sprintf(out, "Hello %s, %s!\n", root, name);
-	RETURN_STRING(out, 1);
+	php_stream *stream;
+	char filename[root_len + bucket_len + path_len + 5 ];
+	char subpath[2];
+	subpath[0] = path[path_len - 2];
+	subpath[1] = path[path_len - 1];
+	subpath[2] = '\0';
 
+	php_sprintf(filename, "%s/%s/%s/%s", root, bucket, subpath, path);
+
+	int options = ENFORCE_SAFE_MODE | STREAM_MUST_SEEK;
+	
+	stream = php_stream_open_wrapper(filename, "r", options, NULL);
+
+	if (!stream) {
+		RETURN_FALSE;
+	}
+	int file_size;
+	php_stream_seek(stream, 0, SEEK_END);
+	file_size = php_stream_tell(stream);
+	php_stream_seek(stream, 0, SEEK_SET);
+	char buf[file_size+1];
+	php_stream_read(stream, buf, file_size);
+	buf[file_size] = '\0';
+	php_stream_free(stream, PHP_STREAM_FREE_CLOSE_PERSISTENT);
+
+	RETURN_STRING(buf, 1);
 }
 ZEND_BEGIN_ARG_INFO(arginfo_filebase_get, 0)
 ZEND_END_ARG_INFO()
@@ -124,7 +146,7 @@ PHP_MINFO_FUNCTION(filebase)
 {
 	php_info_print_table_start();
 	php_info_print_table_header(2, "filebase support", "enabled");
-	php_info_print_table_row(2, "author", "Chen Feng"); /* Replace with your name */
+	php_info_print_table_row(2, "author", "Chen Feng");
 	php_info_print_table_end();
 
 	DISPLAY_INI_ENTRIES();

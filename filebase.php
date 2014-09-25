@@ -11,6 +11,13 @@ foreach($functions as $func) {
     echo $func."$br\n";
 }
 
-echo filebase_get('World');
-
+$article = filebase_get('article', '12345');
+if ($article)
+{
+    echo $article;
+}
+else
+{
+    echo "Error\n";
+}
 ?>

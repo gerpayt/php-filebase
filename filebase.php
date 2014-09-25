@@ -20,4 +20,9 @@ else
 {
     echo "Error\n";
 }
+
+$article = "This is a very long text";
+$length = filebase_put('article', '54321', $article);
+echo "write len" . $length;
+
 ?>

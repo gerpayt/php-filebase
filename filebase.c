@@ -80,6 +80,56 @@ ZEND_BEGIN_ARG_INFO(arginfo_filebase_get, 0)
 ZEND_END_ARG_INFO()
 /* }}} */
 
+/* {{{ PHP_FUNCTION
+*/
+PHP_FUNCTION(filebase_put)
+{
+	char *bucket, *path, *content;
+	int bucket_len, path_len, content_len;
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sss", &bucket, &bucket_len, &path, &path_len, &content, &content_len) == FAILURE)
+	{
+		return;
+	}
+
+	const char *root = INI_STR("filebase.root");
+	const int root_len = strlen(root);
+
+	php_stream *stream, *stream_dir;
+	char filename[root_len + bucket_len + path_len + 5 ];
+	char dirname[root_len + bucket_len + path_len + 5 ];
+	char subpath[2];
+	subpath[0] = path[path_len - 2];
+	subpath[1] = path[path_len - 1];
+	subpath[2] = '\0';
+
+	php_sprintf(filename, "%s/%s/%s/%s", root, bucket, subpath, path);
+	php_sprintf(dirname, "%s/%s/%s", root, bucket, subpath);
+
+	int options = ENFORCE_SAFE_MODE | STREAM_MUST_SEEK;
+
+	stream_dir = php_stream_opendir(dirname, options, NULL);
+	if (!stream_dir) {
+		int res_mkdir;
+		res_mkdir = php_stream_mkdir(dirname, 0755, options, NULL);
+		if (!res_mkdir) {
+			RETURN_FALSE;
+		}
+	}
+	stream = php_stream_open_wrapper(filename, "w+", options, NULL);
+
+	if (!stream) {
+		RETURN_FALSE;
+	}
+
+	int file_size;
+	file_size = php_stream_write(stream, content, content_len);
+	php_stream_free(stream, PHP_STREAM_FREE_CLOSE_PERSISTENT);
+
+	RETURN_LONG(file_size);
+}
+ZEND_BEGIN_ARG_INFO(arginfo_filebase_put, 0)
+ZEND_END_ARG_INFO()
+/* }}} */
 
 /* {{{ filebase_functions[]
  *
@@ -87,6 +137,7 @@ ZEND_END_ARG_INFO()
  */
 const zend_function_entry filebase_functions[] = {
 	PHP_FE(filebase_get, arginfo_filebase_get)
+	PHP_FE(filebase_put, arginfo_filebase_put)
 	PHP_FE_END	/* Must be the last line in filebase_functions[] */
 };
 /* }}} */

@@ -13,9 +13,9 @@ dnl [  --with-filebase             Include filebase support])
 
 dnl Otherwise use enable:
 
-dnl PHP_ARG_ENABLE(filebase, whether to enable filebase support,
-dnl Make sure that the comment is aligned:
-dnl [  --enable-filebase           Enable filebase support])
+PHP_ARG_ENABLE(filebase, whether to enable filebase support,
+Make sure that the comment is aligned:
+[  --enable-filebase           Enable filebase support])
 
 if test "$PHP_FILEBASE" != "no"; then
   dnl Write more examples of tests here...

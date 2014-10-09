@@ -1,4 +1,4 @@
-/*
+ /*
   +----------------------------------------------------------------------+
   | PHP Version 5                                                        |
   +----------------------------------------------------------------------+
@@ -26,7 +26,6 @@
 #include "php_ini.h"
 #include "ext/standard/info.h"
 #include "php_filebase.h"
-
 /* If you declare any globals in php_filebase.h uncomment this:
 ZEND_DECLARE_MODULE_GLOBALS(filebase)
 */
@@ -41,38 +40,47 @@ PHP_FUNCTION(filebase_get)
 {
 	char *bucket, *path;
 	int bucket_len, path_len;
+	const char *root = INI_STR("filebase.root");
+	const zend_bool debug = INI_BOOL("filebase.debug");
+	const int root_len = strlen(root);
+	php_stream *stream;
+	char *filename;
+	char subpath[3];
+	int options;
+	int file_size;
+	char *buf;
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &bucket, &bucket_len, &path, &path_len) == FAILURE)
 	{
 		return;
 	}
 
-	const char *root = INI_STR("filebase.root");
-	const int root_len = strlen(root);
-
-	php_stream *stream;
-	char filename[root_len + bucket_len + path_len + 5 ];
-	char subpath[2];
+	filename =(char*)emalloc((root_len + bucket_len + path_len + 5)*sizeof(char));
 	subpath[0] = path[path_len - 2];
 	subpath[1] = path[path_len - 1];
 	subpath[2] = '\0';
-
 	php_sprintf(filename, "%s/%s/%s/%s", root, bucket, subpath, path);
+	
+	if(debug){
+		php_printf("DEBUG: filename:%s\n", filename);
+	}
 
-	int options = ENFORCE_SAFE_MODE | STREAM_MUST_SEEK;
+	options = ENFORCE_SAFE_MODE | STREAM_MUST_SEEK;
 	
 	stream = php_stream_open_wrapper(filename, "r", options, NULL);
 
 	if (!stream) {
 		RETURN_FALSE;
 	}
-	int file_size;
+	
 	php_stream_seek(stream, 0, SEEK_END);
 	file_size = php_stream_tell(stream);
 	php_stream_seek(stream, 0, SEEK_SET);
-	char buf[file_size+1];
+	buf = (char*)malloc((file_size+1)*sizeof(char));
 	php_stream_read(stream, buf, file_size);
 	buf[file_size] = '\0';
 	php_stream_free(stream, PHP_STREAM_FREE_CLOSE_PERSISTENT);
+
+	efree(filename);
 
 	RETURN_STRING(buf, 1);
 }
@@ -86,18 +94,28 @@ PHP_FUNCTION(filebase_put)
 {
 	char *bucket, *path, *content;
 	int bucket_len, path_len, content_len;
+	const char *root = INI_STR("filebase.root");
+	const zend_bool debug = INI_BOOL("filebase.debug");
+	const int root_len = strlen(root);
+	php_stream *stream, *stream_dir;
+
+	char *filename;
+	char *dirname;
+	char subpath[3];
+
+	int options;
+	int file_size;
+
+	int res_mkdir;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sss", &bucket, &bucket_len, &path, &path_len, &content, &content_len) == FAILURE)
 	{
 		return;
 	}
 
-	const char *root = INI_STR("filebase.root");
-	const int root_len = strlen(root);
+	filename = (char*)emalloc((root_len + bucket_len + path_len + 5)*sizeof(char));
+	dirname = (char*)emalloc((root_len + bucket_len + path_len + 5)*sizeof(char));
 
-	php_stream *stream, *stream_dir;
-	char filename[root_len + bucket_len + path_len + 5 ];
-	char dirname[root_len + bucket_len + path_len + 5 ];
-	char subpath[2];
 	subpath[0] = path[path_len - 2];
 	subpath[1] = path[path_len - 1];
 	subpath[2] = '\0';
@@ -105,11 +123,15 @@ PHP_FUNCTION(filebase_put)
 	php_sprintf(filename, "%s/%s/%s/%s", root, bucket, subpath, path);
 	php_sprintf(dirname, "%s/%s/%s", root, bucket, subpath);
 
-	int options = ENFORCE_SAFE_MODE | STREAM_MUST_SEEK;
+	if(debug){
+		php_printf("DEBUG: filename:%s\n        dirname:%s\n", filename, dirname);
+	}
+
+	options = ENFORCE_SAFE_MODE | STREAM_MUST_SEEK;
 
 	stream_dir = php_stream_opendir(dirname, options, NULL);
-	if (!stream_dir) {
-		int res_mkdir;
+	if (!stream_dir)
+	{
 		res_mkdir = php_stream_mkdir(dirname, 0755, options, NULL);
 		if (!res_mkdir) {
 			RETURN_FALSE;
@@ -121,10 +143,11 @@ PHP_FUNCTION(filebase_put)
 		RETURN_FALSE;
 	}
 
-	int file_size;
+	
 	file_size = php_stream_write(stream, content, content_len);
 	php_stream_free(stream, PHP_STREAM_FREE_CLOSE_PERSISTENT);
-
+	efree(filename);
+	efree(dirname);
 	RETURN_LONG(file_size);
 }
 ZEND_BEGIN_ARG_INFO(arginfo_filebase_put, 0)
@@ -170,6 +193,7 @@ ZEND_GET_MODULE(filebase)
  */
 PHP_INI_BEGIN()
     PHP_INI_ENTRY("filebase.root", "filebase", PHP_INI_ALL, NULL)
+    PHP_INI_ENTRY("filebase.debug", "0", PHP_INI_ALL, NULL)
 PHP_INI_END()
 /* }}} */
 

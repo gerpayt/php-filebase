@@ -11,6 +11,10 @@ foreach($functions as $func) {
     echo $func."$br\n";
 }
 
+$dirname = dirname(__FILE__);
+ini_set('filebase.root', $dirname.'/filebase');
+ini_set('filebase.debug', '1');
+
 $article = filebase_get('article', '12345');
 if ($article)
 {
@@ -23,6 +27,5 @@ else
 
 $article = "This is a very long text";
 $length = filebase_put('article', '54321', $article);
-echo "write len" . $length;
+echo "write len {$length}\n";
 
-?>

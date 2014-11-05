@@ -54,7 +54,7 @@ PHP_FUNCTION(filebase_get)
 		return;
 	}
 
-	filename =(char*)emalloc((root_len + bucket_len + path_len + 5)*sizeof(char));
+	filename =(char*)emalloc((root_len + bucket_len + path_len + 6)*sizeof(char));
 	subpath[0] = path[path_len - 2];
 	subpath[1] = path[path_len - 1];
 	subpath[2] = '\0';
@@ -113,8 +113,8 @@ PHP_FUNCTION(filebase_put)
 		return;
 	}
 
-	filename = (char*)emalloc((root_len + bucket_len + path_len + 5)*sizeof(char));
-	dirname = (char*)emalloc((root_len + bucket_len + path_len + 5)*sizeof(char));
+	filename = (char*)emalloc((root_len + bucket_len + path_len + 6)*sizeof(char));
+	dirname = (char*)emalloc((root_len + bucket_len + path_len + 6)*sizeof(char));
 
 	subpath[0] = path[path_len - 2];
 	subpath[1] = path[path_len - 1];

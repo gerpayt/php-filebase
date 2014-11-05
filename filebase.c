@@ -44,11 +44,14 @@ PHP_FUNCTION(filebase_get)
 	const zend_bool debug = INI_BOOL("filebase.debug");
 	const int root_len = strlen(root);
 	php_stream *stream;
+
 	char *filename;
 	char subpath[3];
+
 	int options;
 	int file_size;
 	char *buf;
+
 	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &bucket, &bucket_len, &path, &path_len) == FAILURE)
 	{
 		return;
@@ -143,7 +146,6 @@ PHP_FUNCTION(filebase_put)
 		RETURN_FALSE;
 	}
 
-	
 	file_size = php_stream_write(stream, content, content_len);
 	php_stream_free(stream, PHP_STREAM_FREE_CLOSE_PERSISTENT);
 	efree(filename);
@@ -154,6 +156,51 @@ ZEND_BEGIN_ARG_INFO(arginfo_filebase_put, 0)
 ZEND_END_ARG_INFO()
 /* }}} */
 
+/* {{{ PHP_FUNCTION
+*/
+PHP_FUNCTION(filebase_del)
+{
+	char *bucket, *path;
+	int bucket_len, path_len;
+	const char *root = INI_STR("filebase.root");
+	const zend_bool debug = INI_BOOL("filebase.debug");
+	const int root_len = strlen(root);
+	int result;
+
+	char *filename;
+	char subpath[3];
+
+	if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "ss", &bucket, &bucket_len, &path, &path_len) == FAILURE)
+	{
+		return;
+	}
+
+	filename = (char*)emalloc((root_len + bucket_len + path_len + 5)*sizeof(char));
+
+	subpath[0] = path[path_len - 2];
+	subpath[1] = path[path_len - 1];
+	subpath[2] = '\0';
+
+	php_sprintf(filename, "%s/%s/%s/%s", root, bucket, subpath, path);
+
+	if(debug){
+		php_printf("DEBUG: filename:%s\n", filename);
+	}
+
+	// TODO use php wrapper function
+	result = unlink(filename);
+	if (result)
+	{
+		RETURN_FALSE;
+	}
+
+	efree(filename);
+	RETURN_TRUE;
+}
+ZEND_BEGIN_ARG_INFO(arginfo_filebase_del, 0)
+ZEND_END_ARG_INFO()
+/* }}} */
+
 /* {{{ filebase_functions[]
  *
  * Every user visible function must have an entry in filebase_functions[].
@@ -161,6 +208,7 @@ ZEND_END_ARG_INFO()
 const zend_function_entry filebase_functions[] = {
 	PHP_FE(filebase_get, arginfo_filebase_get)
 	PHP_FE(filebase_put, arginfo_filebase_put)
+	PHP_FE(filebase_del, arginfo_filebase_del)
 	PHP_FE_END	/* Must be the last line in filebase_functions[] */
 };
 /* }}} */
